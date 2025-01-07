@@ -14,14 +14,18 @@ ENV EDB_VER $EDB_VER
 ENV EDB_REPO https://get.enterprisedb.com/postgresql
 
 ##### Use PowerShell for the installation
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop';$ProgressPreference = 'SilentlyContinue';"]
+
+ENV EDB_URL=$EDB_REPO/postgresql-$EDB_VER-windows-x64-binaries.zip
+ENV EDB_ZIP=C:\\EnterpriseDB.zip
 
 ### Download EnterpriseDB and remove cruft
-RUN $URL1 = $('{0}/postgresql-{1}-windows-x64-binaries.zip' -f $env:EDB_REPO,$env:EDB_VER) ; \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 ; \
-    Invoke-WebRequest -Uri $URL1 -OutFile 'C:\\EnterpriseDB.zip' ; \
-    Expand-Archive 'C:\\EnterpriseDB.zip' -DestinationPath 'C:\\' ; \
-    Remove-Item -Path 'C:\\EnterpriseDB.zip' ; \
+RUN echo Downloading $env:EDB_URL;\
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;\
+    Invoke-WebRequest -Uri "$env:EDB_URL" -OutFile "$env:EDB_ZIP"
+RUN echo Installing $env:EDB_ZIP;\
+    Expand-Archive "$env:EDB_ZIP" -DestinationPath 'C:\\' ; \
+    Remove-Item -Path "$env:EDB_ZIP" ; \
     Remove-Item -Recurse -Force –Path 'C:\\pgsql\\doc' ; \
     Remove-Item -Recurse -Force –Path 'C:\\pgsql\\include' ; \
     Remove-Item -Recurse -Force –Path 'C:\\pgsql\\pgAdmin*' ; \
@@ -33,13 +37,18 @@ RUN $SAMPLE_FILE = 'C:\\pgsql\\share\\postgresql.conf.sample' ; \
     $SAMPLE_CONF = $SAMPLE_CONF -Replace '#listen_addresses = ''localhost''','listen_addresses = ''*''' ; \
     $SAMPLE_CONF | Set-Content $SAMPLE_FILE
 
+ENV VCLIBS_NEW='Using Visual C++ 140 OneCore dlls from Visual Studio 2022 located at eg. C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Redist\MSVC\14.42.34433\onecore\x64\Microsoft.VC143.CRT'
+ENV VCLIBS_OLD='Visual C++ 2013 Redistributable Package'
+
 ### Install correct Visual C++ Redistributable Package
+# MI: See VC140 OneCore dlls discussion at https://github.com/dotnet/runtime/issues/40131#issuecomment-670077781 I was inspired to look at which allowed to make postgres.exe 15 work
+ADD Microsoft.VC143.CRT c:\\MSVC
 RUN if (($env:EDB_VER -like '9.*') -or ($env:EDB_VER -like '10.*')) { \
-        Write-Host('Visual C++ 2013 Redistributable Package') ; \
+        Write-Host($env:VCLIBS_OLD) ; \
         $URL2 = 'https://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe' ; \
     } else { \
-        Write-Host('Visual C++ 2017 Redistributable Package') ; \
-        $URL2 = 'https://download.visualstudio.microsoft.com/download/pr/11100230/15ccb3f02745c7b206ad10373cbca89b/VC_redist.x64.exe' ; \
+        Write-Host($env:VCLIBS_NEW) ; \
+        exit;\
     } ; \
     Invoke-WebRequest -Uri $URL2 -OutFile 'C:\\vcredist.exe' ; \
     Start-Process 'C:\\vcredist.exe' -Wait \
@@ -54,12 +63,12 @@ RUN if (($env:EDB_VER -like '9.*') -or ($env:EDB_VER -like '10.*')) { \
 
 # Copy relevant DLLs to PostgreSQL
 RUN if (Test-Path 'C:\\windows\\system32\\msvcp120.dll') { \
-        Write-Host('Visual C++ 2013 Redistributable Package') ; \
+        Write-Host($env:VCLIBS_OLD) ; \
         Copy-Item 'C:\\windows\\system32\\msvcp120.dll' -Destination 'C:\\pgsql\\bin\\msvcp120.dll' ; \
         Copy-Item 'C:\\windows\\system32\\msvcr120.dll' -Destination 'C:\\pgsql\\bin\\msvcr120.dll' ; \
     } else { \
-        Write-Host('Visual C++ 2017 Redistributable Package') ; \
-        Copy-Item 'C:\\windows\\system32\\vcruntime140.dll' -Destination 'C:\\pgsql\\bin\\vcruntime140.dll' ; \
+        Write-Host($env:VCLIBS_NEW) ; \
+        Copy-Item 'C:\\MSVC\\*' -Destination 'C:\\pgsql\\bin' ; \
     }
 
 ####

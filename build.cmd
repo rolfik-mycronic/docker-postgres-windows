@@ -9,6 +9,7 @@ SETLOCAL EnableDelayedExpansion
     ::             pg10
     ::             pg11
     ::             pg12
+    ::             pg15
     ::   winValue: specifies a specific Windows base image. One of:
     ::             win1607
     ::             win1709
@@ -16,6 +17,7 @@ SETLOCAL EnableDelayedExpansion
     ::             win1809
     ::             win1903
     ::             win1909
+    ::             win20H2
 :: If no values are specified then all images are built.
 
 :: Batch file has no concept of a function, only goto
@@ -61,6 +63,9 @@ EXIT /B 0
     if [%win1909%] == [true] (
         call :image_build 1909 %edbVer%
     )
+    if [%win20H2%] == [true] (
+        call :image_build 20H2 %edbVer%
+    )
 EXIT /B 0
 
 :: call :manifest_build MANVER
@@ -70,7 +75,8 @@ EXIT /B 0
         %repoName%:%manVer% ^
         %repoName%:%manVer%-1809 ^
         %repoName%:%manVer%-1903 ^
-        %repoName%:%manVer%-1909
+        %repoName%:%manVer%-1909 ^
+        %repoName%:%manVer%-20H2
     docker manifest push %repoName%:%manVer%
 EXIT /B 0
 
@@ -80,7 +86,7 @@ EXIT /B 0
 
 :start
 
-set repoName=stellirin/postgres-windows
+set repoName=marekistvanekmycronic/postgres-windows
 
 :: Build versions of PostgreSQL supported by EnterpriseDB
 set pgValue=%~1
@@ -92,6 +98,7 @@ if [%pgValue%] == [] (
     set pg10=true
     set pg11=true
     set pg12=true
+    set pg15=true
 )
 if NOT [%pgValue%] == [] (
     set %pgValue%=true
@@ -103,22 +110,25 @@ if [%winValue%] == [] (
     set win1809=true
     set win1903=true
     set win1909=true
+    set win20H2=true
 )
 if NOT [%winValue%] == [] (
     set %winValue%=true
 )
 
-docker pull mcr.microsoft.com/windows/servercore:1809
-docker pull mcr.microsoft.com/windows/servercore:1903
-docker pull mcr.microsoft.com/windows/servercore:1909
+::docker pull mcr.microsoft.com/windows/servercore:1809
+::docker pull mcr.microsoft.com/windows/servercore:1903
+::docker pull mcr.microsoft.com/windows/servercore:1909
 
-docker pull mcr.microsoft.com/windows/nanoserver:1809
-docker pull mcr.microsoft.com/windows/nanoserver:1903
-docker pull mcr.microsoft.com/windows/nanoserver:1909
+::docker pull mcr.microsoft.com/windows/nanoserver:1809
+::docker pull mcr.microsoft.com/windows/nanoserver:1903
+::docker pull mcr.microsoft.com/windows/nanoserver:1909
 
 :: ------------------------------------------------------------
 :: ------------------------------------------------------------
 :: ------------------------------------------------------------
+
+:: https://www.enterprisedb.com/download-postgresql-binaries
 
 :: PostgreSQL 9.4
 if [%pg94%] == [true] (
@@ -171,5 +181,14 @@ if [%pg12%] == [true] (
     if [%winValue%] == [] (
         call :manifest_build "12"
         call :manifest_build "12.0"
+    )
+)
+
+:: PostgreSQL 15
+if [%pg15%] == [true] (
+    call :postgres_build "15.10-3"
+    if [%winValue%] == [] (
+        call :manifest_build "15"
+        call :manifest_build "15.10"
     )
 )

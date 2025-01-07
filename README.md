@@ -1,4 +1,25 @@
-# This repository is archived!
+# PostgreSQL Windows Docker images
+
+These images
+- provide PostgreSQL database server
+- run in Windows Nano Server
+- are built in Windows Server Core
+
+Code repository:
+https://github.com/rolfik-mycronic/docker-postgres-windows
+updates original archived one:
+https://github.com/stellirin/docker-postgres-windows.
+
+- 2025.1
+  - added Windows 20H2 and PostgreSQL 15.10
+  - build it with `.\build.cmd pg15 win20H2`
+  - use it with tag `15-20H2` or `15.10-20H2`
+
+Original text follows:
+
+---
+
+## This repository is archived!
 
 I no longer have a need for PostgreSQL as a Windows container so I will not continue to maintain this repository.
 
@@ -15,6 +36,7 @@ If anyone still has a use case for this kind of container image I recommend to r
 
 The above tags are manifest tags that consist of a set builds based on all available `nanoserver` releases, specifically:
 
+- `nanoserver:20H2`
 - `nanoserver:1909`
 - `nanoserver:1903`
 - `nanoserver:1809`

@@ -80,7 +80,6 @@ if NOT exist "%PGDATA%\PG_VERSION" (
 
     if NOT [!POSTGRES_PASSWORD!] == [] (
         set authMethod=md5
-        echo authMethod: !authMethod!
     ) else (
         echo ****************************************************
         echo WARNING: No password has been set for the database.
@@ -93,8 +92,9 @@ if NOT exist "%PGDATA%\PG_VERSION" (
         echo          it in "docker run".
         echo ****************************************************
         set authMethod=trust
-        echo authMethod: !authMethod!
     )
+    echo authMethod: !authMethod!
+
     echo.>> "%PGDATA%\pg_hba.conf"
     echo host all all all !authMethod!>> "%PGDATA%\pg_hba.conf"
 
