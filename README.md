@@ -3,7 +3,7 @@
 These images
 - provide PostgreSQL database server
 - run in [Windows Nano Server](https://hub.docker.com/r/microsoft/windows-nanoserver)
-- are built in [Windows Server Core]()
+- are built in [Windows Server Core](https://hub.docker.com/r/microsoft/windows-servercore)
 
 Code repository:
 https://github.com/rolfik-mycronic/docker-postgres-windows
