@@ -5,13 +5,17 @@ These images
 - run in [Windows Nano Server](https://hub.docker.com/r/microsoft/windows-nanoserver)
 - are built in [Windows Server Core]()
 
-Image repository:
-https://hub.docker.com/r/marekistvanekmycronic/postgres-windows
-
 Code repository:
 https://github.com/rolfik-mycronic/docker-postgres-windows
 updates original archived one:
 https://github.com/stellirin/docker-postgres-windows.
+
+Image repository with updated images:
+https://hub.docker.com/r/marekistvanekmycronic/postgres-windows
+and original ones:
+https://hub.docker.com/r/stellirin/postgres-windows.
+
+## History
 
 - 2025.1
   - added Windows 20H2 and PostgreSQL 15.10-3
